@@ -156,8 +156,15 @@ def longest_ORF(dna):
 	>>> longest_ORF("ATGCGAATGTAGCATCAAA")
 	'ATGCTACATTCGCAT'
 	"""
-	# TODO: implement this
-	pass
+	ORFs=find_all_ORFs_both_strands(dna)
+	ORFs_max=0
+	long_ORF=''
+	for i in range(len(ORFs)):
+		current_length=len(ORFs[i])
+		if current_length>ORFs_max:
+			ORFs_max=current_length
+			long_ORF=ORFs[i]
+	return long_ORF
 
 
 def longest_ORF_noncoding(dna, num_trials):
@@ -167,8 +174,15 @@ def longest_ORF_noncoding(dna, num_trials):
 		dna: a DNA sequence
 		num_trials: the number of random shuffles
 		returns: the maximum length longest ORF """
-	# TODO: implement this
-	pass
+	longest_length=0
+	for i in range(1,num_trials):
+		shuffled=shuffle_string(dna)
+		newORF=longest_ORF(shuffled)
+		if len(newORF)>longest_length:
+			longest_length=len(newORF)
+	return longest_length
+			
+
 
 
 def coding_strand_to_AA(dna):
@@ -185,9 +199,15 @@ def coding_strand_to_AA(dna):
 		>>> coding_strand_to_AA("ATGCCCGCTTT")
 		'MPA'
 	"""
-	# TODO: implement this
-	pass
-
+	aa_list=[]
+	remainder=len(dna)%3
+	dna=dna[:(len(dna)-remainder)]
+	for i in range(0,len(dna),3):
+		current_codon=dna[i:i+3]
+		current_aa=aa_table[current_codon]
+		aa_list.append(current_aa)
+	aa_str=''.join(aa_list)
+	return aa_str
 
 def gene_finder(dna):
 	""" Returns the amino acid sequences that are likely coded by the specified dna
@@ -195,9 +215,22 @@ def gene_finder(dna):
 		dna: a DNA sequence
 		returns: a list of all amino acid sequences coded by the sequence dna.
 	"""
-	# TODO: implement this
-	pass
+	found_genes=[]
+	threshold = longest_ORF_noncoding(dna, 1500)
+	ORF_list=find_all_ORFs_both_strands(dna)
+	for ORF in ORF_list:
+		if len(ORF)>threshold:
+			current_gene=coding_strand_to_AA(ORF)
+			found_genes.append(current_gene)
+	return found_genes
+
+dna = load_seq("./data/X73525.fa")
+
+print gene_finder(dna)
+
+#longest_ORF_noncoding(dna, 1500)
 
 if __name__ == "__main__":
 	import doctest
 	doctest.testmod()
+
