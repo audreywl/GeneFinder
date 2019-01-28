@@ -9,6 +9,8 @@ YOUR HEADER COMMENT HERE
 import random
 from amino_acids import aa, codons, aa_table   # you may find these useful
 from load import load_seq
+from load import load_contigs
+
 
 
 def shuffle_string(s):
@@ -39,7 +41,8 @@ def get_complement(nucleotide):
 	elif nucleotide=='C':
 		return 'G'
 	else:
-		return 'Not a valid nucleotide'
+		#return 'Not a valid nucleotide'
+		return 'T'
 
 
 def get_reverse_complement(dna):
@@ -143,6 +146,7 @@ def find_all_ORFs_both_strands(dna):
 	['ATGCGAATG', 'ATGCTACATTCGCAT']
 	"""
 	dnareverse=get_reverse_complement(dna)
+	dna=get_reverse_complement(dnareverse)
 	ORFs1=find_all_ORFs(dna)
 	ORFs2=find_all_ORFs(dnareverse)
 	ORFs=ORFs1+ORFs2
@@ -209,14 +213,21 @@ def coding_strand_to_AA(dna):
 	aa_str=''.join(aa_list)
 	return aa_str
 
-def gene_finder(dna):
+def gene_finder(dna,threshold = None):
 	""" Returns the amino acid sequences that are likely coded by the specified dna
 
 		dna: a DNA sequence
+		threshold: the minimum length from an ORF to be considered significant. *
 		returns: a list of all amino acid sequences coded by the sequence dna.
+
+		*if not given, threshold is found by shuffling the dna 1500 times
+
 	"""
 	found_genes=[]
-	threshold = longest_ORF_noncoding(dna, 1500)
+	if threshold==None:
+		threshold = longest_ORF_noncoding(dna, 1500)
+	#print threshold
+	
 	ORF_list=find_all_ORFs_both_strands(dna)
 	for ORF in ORF_list:
 		if len(ORF)>threshold:
@@ -224,11 +235,29 @@ def gene_finder(dna):
 			found_genes.append(current_gene)
 	return found_genes
 
+def peanut_finder():
+	"""Loads contigs from the 'hot peanut' bacteria and runs them with the gene_finder program. Threshold is set to 789."""
+	contigs=load_contigs()
+	name = contigs[5][0]
+	#print name
+	dna_sequence = contigs[5][1]
+	return gene_finder(dna_sequence, 789)
+
 dna = load_seq("./data/X73525.fa")
 
-print gene_finder(dna)
-
 #longest_ORF_noncoding(dna, 1500)
+
+#gene_finder(dna)
+
+genes_from_contig=peanut_finder()
+
+print genes_from_contig[31]
+
+
+
+
+
+
 
 if __name__ == "__main__":
 	import doctest
